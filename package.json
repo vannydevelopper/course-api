@@ -1,0 +1,21 @@
+{
+  "name": "wasili_driver",
+  "version": "1.0.0",
+  "description": "API pour l'application des drivers de wasili se trouvant dans les corporate",
+  "main": "server_wasili_driver.js",
+  "scripts": {
+    "start": "nodemon server_wasili_driver.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "moment": "^2.29.2",
+    "mysql": "^2.18.1",
+    "nodemon": "^2.0.15",
+    "util": "^0.12.4"
+  }
+}
