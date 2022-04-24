@@ -3,9 +3,10 @@ const pick_upController = require("../models/pick_up.model");
 const getPick = async (req, res) => {
   try {
     const { CORPORATE_ID } = req.params;
-    const { offset, limit } = req.query;
+    const { offset, limit, q } = req.query;
     const rider_kcb = await pick_upController.getPick(
       CORPORATE_ID,
+      q,
       offset,
       limit
     );

@@ -22,7 +22,7 @@ app.use("/destination", destinationRoutes);
 app.use("/type_incident", type_incidentRoutes);
 app.use("/declarations", declarationRouter);
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 8080;
 
 app.listen(port, async () => {
   console.log("server is running on port: " + port);
