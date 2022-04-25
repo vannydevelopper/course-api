@@ -16,7 +16,7 @@ const createDeclaration = async (req, res) => {
                     TYPE_INCIDENT_ID, AUTRE_INCIDENT,
                     IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
                     COMMENTAIRE_COVOITURAGE, RAISON_ANNULATION, ANNULE_PAR,
-                    TIME_SPENT, KM_SPENT, MONTANT, NUMERO_COURSE, DATE_DEBUT_COURSE
+                    TIME_SPENT, KM_SPENT, MONTANT, NUMERO_COURSE, DATE_DEBUT_COURSE, LATITUDE, LONGITUDE
           } = req.body;
 
           try {
@@ -58,7 +58,7 @@ const createDeclaration = async (req, res) => {
                               TYPE_INCIDENT_ID = newIncidentId
                     }
                     const { insertId } = await declaration_courseModel.create(
-                              ID_CORPORATE, TYPE_DECLARATION_ID, NUMERO_COURSE, iS_COVOITURAGE,
+                              ID_CORPORATE, TYPE_DECLARATION_ID, NUMERO_COURSE, LATITUDE, LONGITUDE, iS_COVOITURAGE,
                               CLIENT_ID, RIDER_ID,
                               PICK_UP_ID, DESTINATION_ID, TYPE_INCIDENT_ID, IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
                               COMMENTAIRE_COVOITURAGE, RAISON_ANNULATION, ANNULE_PAR, TIME_SPENT, KM_SPENT,
