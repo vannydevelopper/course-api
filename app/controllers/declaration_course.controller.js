@@ -15,9 +15,11 @@ const createDeclaration = async (req, res) => {
                     DESTINATION_ID, AUTRE_DESTINATION,
                     TYPE_INCIDENT_ID, AUTRE_INCIDENT,
                     IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
-                    COMMENTAIRE_COVOITURAGE, RAISON_ANNULATION, ANNULE_PAR,
+                    COMMENTAIRE_COVOITURAGE,
+                    ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, RAISON_ANNULATION, ANNULE_PAR,
                     TIME_SPENT, KM_SPENT, MONTANT, NUMERO_COURSE, DATE_DEBUT_COURSE, LATITUDE, LONGITUDE
           } = req.body;
+          console.log(req.body)
 
           try {
 
@@ -57,11 +59,18 @@ const createDeclaration = async (req, res) => {
                               ])
                               TYPE_INCIDENT_ID = newIncidentId
                     }
+                    if(ID_RAISON_ANNULATION == 'autre') {
+                              const { insertId: newRaisonId } = await query('INSERT INTO raisons_annulation(DESCRIPTION, IS_AUTRE) VALUES(?, ?)', [
+                                        RAISON_ANNULATION,
+                                        1
+                              ])
+                              ID_RAISON_ANNULATION = newRaisonId
+                    }
                     const { insertId } = await declaration_courseModel.create(
                               ID_CORPORATE, TYPE_DECLARATION_ID, NUMERO_COURSE, LATITUDE, LONGITUDE, iS_COVOITURAGE,
                               CLIENT_ID, RIDER_ID,
                               PICK_UP_ID, DESTINATION_ID, TYPE_INCIDENT_ID, IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
-                              COMMENTAIRE_COVOITURAGE, RAISON_ANNULATION, ANNULE_PAR, TIME_SPENT, KM_SPENT,
+                              COMMENTAIRE_COVOITURAGE, ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, ANNULE_PAR, TIME_SPENT, KM_SPENT,
                               MONTANT, DATE_DEBUT_COURSE, moment().format('YYYY/MM/DD HH:mm:ss'));
                     res.status(201).json({ ...req.body, DECLARATION_ID : insertId });
           } catch (error) {
@@ -118,10 +127,29 @@ const getLastCourse = async (req, res) => {
           }
 }
 
+const getRaisons= async (req, res) => {
+          var { q, limit = 10, offset = 0 } = req.query
+          try {
+                    var binds = []
+                    var sqlQuery = 'SELECT * FROM raisons_annulation WHERE IS_AUTRE = 0 '
+                    if(q) {
+                              sqlQuery += " AND DESCRIPTION LIKE ? "
+                              binds.push(`%${q}%`)
+                    }
+                    sqlQuery += `LIMIT ${offset}, ${limit}`;
+                    const raisons = await query(sqlQuery, binds)
+                    res.status(200).json(raisons)
+          } catch(error) {
+                    console.log(error)
+                    res.status(500).send('Server error')
+          }
+}
+
 module.exports = {
           createDeclaration,
           getAgences,
           login,
           getHistory,
-          getLastCourse
+          getLastCourse,
+          getRaisons
 };
