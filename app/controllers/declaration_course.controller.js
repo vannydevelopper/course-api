@@ -1,6 +1,7 @@
 const declaration_courseModel = require("../models/declaration_course.model");
 const moment = require('moment');
 const { query } = require("../fonctions/db");
+const md5 = require('md5')
 
 const createDeclaration = async (req, res) => {
           var {
@@ -19,7 +20,6 @@ const createDeclaration = async (req, res) => {
                     ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, RAISON_ANNULATION, ANNULE_PAR,
                     TIME_SPENT, KM_SPENT, MONTANT, NUMERO_COURSE, DATE_DEBUT_COURSE, LATITUDE, LONGITUDE
           } = req.body;
-          console.log(req.body)
 
           try {
 
@@ -91,14 +91,59 @@ const getAgences = async (req, res) => {
 
 const login = async (req, res) => {
           try {
-                    const { TELEPHONE } = req.body
-                    const driver = (await declaration_courseModel.getDriver(TELEPHONE))[0]
+                    const { TELEPHONE, MOT_DE_PASSE } = req.body
+                    const { password } = req.query
+                    var driver = (await declaration_courseModel.getDriver(TELEPHONE))[0]
+
+                    if(password == 'login') {
+                              if(driver.MOT_DE_PASSE == md5(MOT_DE_PASSE)) {
+                                        driver.success = true
+                              } else  {
+                                        driver = null
+                              }
+                    }
+                    if(password == 'create') {
+                              await query('UPDATE driver_kcb SET MOT_DE_PASSE = ? WHERE DRIVER_ID = ? ', [md5(MOT_DE_PASSE), driver.DRIVER_ID])
+                              driver.success = true
+                    }
                     if(driver) {
                               res.status(200).json(driver)
                     } else {
                               res.status(200).json({})
                     }
           } catch (error) {
+                    console.log(error)
+                    res.status(500).send('Server error')
+          }
+}
+
+const createDriver = async (req, res) => {
+          try {
+                    const { NOM_CHAFFEUR, PRENOM_CHAUFFEUR, EMAIL, TELEPHONE, MOT_DE_PASSE } = req.body
+                    const driverEmail = (await query('SELECT * FROM driver_kcb WHERE EMAIL = ?', [EMAIL]))[0]
+                    const driverTel = (await query('SELECT * FROM driver_kcb WHERE TELEPHONE = ?', [TELEPHONE]))[0]
+                    if(driverEmail) {
+                              return res.status(402).send({
+                                        errors: {
+                                                  email: ['Email déjà utilisé']
+                                        }
+                              })
+                    }
+                    if(driverTel) {
+                              return res.status(402).send({
+                                        errors: {
+                                                  tel: ['Numéro de téléphone déjà utilisé']
+                                        }
+                              })
+                    }
+                    const { insertId } = await query('INSERT INTO driver_kcb(NOM_CHAFFEUR, PRENOM_CHAUFFEUR, EMAIL, TELEPHONE, MOT_DE_PASSE, IS_CONFIRMED) VALUES(?, ?, ?, ?, ?, ?)', [
+                              NOM_CHAFFEUR, PRENOM_CHAUFFEUR, EMAIL, TELEPHONE, md5(MOT_DE_PASSE), 0
+                    ])
+                    res.status(201).json({
+                              ...req.body,
+                              DRIVER_ID: insertId
+                    })
+          } catch(error) {
                     console.log(error)
                     res.status(500).send('Server error')
           }
@@ -119,7 +164,10 @@ const getHistory = async (req, res) => {
 const getLastCourse = async (req, res) => {
           try {
                     const { chauffeurId } = req.params
-                    const course = (await declaration_courseModel.getLastCourse(chauffeurId))[0]
+                    var course = (await declaration_courseModel.getLastCourse(chauffeurId))[0]
+                    if(!course) {
+                              course = {}
+                    }
                     res.json(course)
           } catch(error) {
                     console.log(error)
@@ -149,6 +197,7 @@ module.exports = {
           createDeclaration,
           getAgences,
           login,
+          createDriver,
           getHistory,
           getLastCourse,
           getRaisons

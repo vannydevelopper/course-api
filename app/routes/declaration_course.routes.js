@@ -5,6 +5,7 @@ const declarationRoutes = express.Router();
 
 declarationRoutes.post("/", declaratioController.createDeclaration);
 declarationRoutes.post("/driver/login", declaratioController.login);
+declarationRoutes.post("/driver", declaratioController.createDriver);
 declarationRoutes.get("/agences", declaratioController.getAgences);
 declarationRoutes.get("/raisons", declaratioController.getRaisons);
 declarationRoutes.get("/:chauffeurId", declaratioController.getHistory);
