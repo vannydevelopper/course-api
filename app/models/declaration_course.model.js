@@ -22,22 +22,51 @@ const getAgences = async () => {
 
 const getDriver = async (TELEPHONE) => {
           try {
-                    return query('SELECT * FROM driver_kcb WHERE TELEPHONE = ?', [TELEPHONE])
+                    return query('SELECT dkc.*, dt.ID_DRIVER_KCB FROM driver_kcb dkc LEFT JOIN driver_notification_tokens dt ON dt.ID_DRIVER_KCB = dkc.DRIVER_ID WHERE TELEPHONE = ?', [TELEPHONE])
           } catch (error) {
                     throw error
           }
 }
 
-const getHistory = async (chauffeurId, corporate,  month, year, q, limit = 0, offset = 10) => {
+const getHistory = async (chauffeurId, isAll = false, corporate,  month, year, q, limit = 0, offset = 10) => {
           try {
-                    var sqlQuery = `SELECT dc.*, co.DESCRIPTION CORPORATE_DESCRIPTION, pi.DESCRIPTION PICKUP, de.DESCRIPTION DESTINATION, rk.NOM  FROM declaration_course  dc     `
+                    var binds = []
+                    var sqlQuery = `SELECT dc.*, co.DESCRIPTION CORPORATE_DESCRIPTION, tyi.DESCRIPTION INCIDENT_DESCRIPTION, ra.DESCRIPTION RAISON_ANNULATION, drk.NOM_CHAFFEUR, drk.PRENOM_CHAUFFEUR, pi.DESCRIPTION PICKUP, de.DESCRIPTION DESTINATION, rk.NOM  FROM declaration_course  dc     `
+                    sqlQuery += " LEFT JOIN corporate co ON co.ID_CORPORATE = dc.ID_CORPORATE "
+                    sqlQuery += " LEFT JOIN pick_up pi ON pi.PICK_UP_ID = dc.PICK_UP_ID "
+                    sqlQuery += " LEFT JOIN destination de ON de.DESTINATION_ID = dc.DESTINATION_ID "
+                    sqlQuery += " LEFT JOIN driver_kcb drk ON drk.DRIVER_ID = dc.RIDER_ID "
+                    sqlQuery += " LEFT JOIN type_incident tyi ON tyi.TYPE_INCIDENT_ID = dc.TYPE_INCIDENT_ID "
+                    sqlQuery += " LEFT JOIN raisons_annulation ra ON ra.ID_RAISON_ANNULATION = dc.ID_RAISON_ANNULATION "
+                    sqlQuery += " LEFT JOIN rider_kcb rk ON rk.RIDE_KCB_ID  = dc.CLIENT_ID WHERE 1 "
+                    if(!isAll) {
+                              sqlQuery +=  ' AND dc.RIDER_ID = ? '
+                              binds.push(chauffeurId)
+                    }
+                    sqlQuery += `  AND dc.ID_CORPORATE = ? AND MONTH(DATE_INSERTION) = ? AND YEAR(DATE_INSERTION) = ?`
+                    sqlQuery += ` ORDER BY DATE_INSERTION DESC`
+                    if(isAll) {
+                              sqlQuery += " LIMIT 50 "
+                    }
+                    binds.push(corporate, month, year)
+                    return query(sqlQuery, binds)
+          } catch (error) {
+                    throw error
+          }
+}
+
+const getOneDeclaration = async (idDeclaration) => {
+          try {
+                    var sqlQuery = `SELECT dc.*, co.DESCRIPTION CORPORATE_DESCRIPTION, ra.DESCRIPTION RAISON_ANNULATION , drk.NOM_CHAFFEUR, drk.PRENOM_CHAUFFEUR, pi.DESCRIPTION PICKUP, de.DESCRIPTION DESTINATION, rk.NOM  FROM declaration_course  dc     `
                     sqlQuery += " LEFT JOIN corporate co ON co.ID_CORPORATE = dc.ID_CORPORATE "
                     sqlQuery += " LEFT JOIN pick_up pi ON pi.PICK_UP_ID = dc.PICK_UP_ID "
                     sqlQuery += " LEFT JOIN destination de ON de.DESTINATION_ID = dc.DESTINATION_ID "
                     sqlQuery += " LEFT JOIN rider_kcb rk ON rk.RIDE_KCB_ID  = dc.CLIENT_ID "
-                    sqlQuery += ` WHERE dc.RIDER_ID = ? AND dc.ID_CORPORATE = ? AND MONTH(DATE_INSERTION) = ? AND YEAR(DATE_INSERTION) = ?`
+                    sqlQuery += " LEFT JOIN driver_kcb drk ON drk.DRIVER_ID = dc.RIDER_ID "
+                    sqlQuery += " LEFT JOIN raisons_annulation ra ON ra.ID_RAISON_ANNULATION = dc.ID_RAISON_ANNULATION "
+                    sqlQuery += ` WHERE dc.DECLARATION_ID = ?`
                     sqlQuery += ` ORDER BY DATE_INSERTION DESC`
-                    return query(sqlQuery, [chauffeurId, corporate, month, year])
+                    return query(sqlQuery, [idDeclaration])
           } catch (error) {
                     throw error
           }
@@ -56,5 +85,6 @@ module.exports = {
           getAgences,
           getDriver,
           getHistory,
-          getLastCourse
+          getLastCourse,
+          getOneDeclaration
 };

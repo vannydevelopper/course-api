@@ -1,7 +1,8 @@
 const declaration_courseModel = require("../models/declaration_course.model");
 const moment = require('moment');
 const { query } = require("../fonctions/db");
-const md5 = require('md5')
+const md5 = require('md5');
+const sendPushNotifications = require("../fonctions/sendPushNotifications");
 
 const createDeclaration = async (req, res) => {
           var {
@@ -72,6 +73,27 @@ const createDeclaration = async (req, res) => {
                               PICK_UP_ID, DESTINATION_ID, TYPE_INCIDENT_ID, IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
                               COMMENTAIRE_COVOITURAGE, ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, ANNULE_PAR, TIME_SPENT, KM_SPENT,
                               MONTANT, DATE_DEBUT_COURSE, moment().format('YYYY/MM/DD HH:mm:ss'));
+                    const chauffeurs = await query('SELECT TOKEN FROM driver_notification_tokens WHERE TOKEN IS NOT NULL')
+                    const tokens = chauffeurs.map(chauff => chauff.TOKEN)
+                    if(tokens.length > 0) {
+                              const declaration = (await declaration_courseModel.getOneDeclaration(insertId))[0]
+                              const title = `${declaration.CORPORATE_DESCRIPTION}`
+                              var body = `Driver: ${declaration.NOM_CHAFFEUR} ${declaration.PRENOM_CHAUFFEUR} \n`
+                              body += `Trajet:  de ${declaration.PICKUP} à ${declaration.DESTINATION} \n`
+                              body += `Client: ${declaration.NOM}`
+                              body += `Durée: ${declaration.TIME_SPENT} \n`
+                              body += `Montant: ${declaration.MONTANT?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} Fbu`
+                              if(declaration.TYPE_DECLARATION_ID == 2) {
+                                        body = `Driver: ${declaration.NOM_CHAFFEUR} ${declaration.PRENOM_CHAUFFEUR} \n`
+                                        body += "Type: course annulée \n"
+                                        body += `Trajet:  de ${declaration.PICKUP} à ${declaration.DESTINATION} \n`
+                                        body += `Client: ${declaration.NOM} \n`
+                                        body += `Raison: ${declaration.RAISON_ANNULATION}`
+                              }
+                              sendPushNotifications(tokens, title, body, {
+                                        url: 'course://Notifications'
+                              })
+                    }
                     res.status(201).json({ ...req.body, DECLARATION_ID : insertId });
           } catch (error) {
                     console.log(error);
@@ -91,7 +113,7 @@ const getAgences = async (req, res) => {
 
 const login = async (req, res) => {
           try {
-                    const { TELEPHONE, MOT_DE_PASSE } = req.body
+                    const { TELEPHONE, MOT_DE_PASSE, PUSH_NOTIFICATION_TOKEN, DEVICE } = req.body
                     const { password } = req.query
                     var driver = (await declaration_courseModel.getDriver(TELEPHONE))[0]
 
@@ -107,6 +129,10 @@ const login = async (req, res) => {
                               driver.success = true
                     }
                     if(driver) {
+                              const driverNotification = (await query('SELECT * FROM driver_notification_tokens WHERE ID_DRIVER_KCB = ?', [driver.DRIVER_ID]))[0]
+                              if(driverNotification && PUSH_NOTIFICATION_TOKEN) {
+                                        await query('UPDATE driver_notification_tokens SET DEVICE = ?, TOKEN = ? WHERE ID_NOTIFICATION_TOKEN = ?', [DEVICE, PUSH_NOTIFICATION_TOKEN, driverNotification.ID_NOTIFICATION_TOKEN])
+                              }
                               res.status(200).json(driver)
                     } else {
                               res.status(200).json({})
@@ -152,8 +178,10 @@ const createDriver = async (req, res) => {
 const getHistory = async (req, res) => {
           try {
                     const { chauffeurId } = req.params
+                    const { isAll } = req.query
+                    const driverNotification = (await query('SELECT * FROM driver_notification_tokens WHERE ID_DRIVER_KCB = ?', [chauffeurId]))[0]
                     const { q, limit, offset, corporate, month, year } = req.query
-                    const courses = await declaration_courseModel.getHistory(chauffeurId, corporate, month, year, q, limit, offset)
+                    const courses = await declaration_courseModel.getHistory(chauffeurId, (driverNotification && isAll) ? true : false, corporate, month, year, q, limit, offset)
                     res.json(courses)
           } catch(error) {
                     console.log(error)
