@@ -7,6 +7,7 @@ const pick_upRoutes = require("./app/routes/pick_up.routes");
 const destinationRoutes = require("./app/routes/destination.routes");
 const type_incidentRoutes = require("./app/routes/type_incident.routes");
 const declarationRouter = require("./app/routes/declaration_course.routes");
+const modeRouter = require("./app/routes/mode_type.routes")
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/pick_up", pick_upRoutes);
 app.use("/destination", destinationRoutes);
 app.use("/type_incident", type_incidentRoutes);
 app.use("/declarations", declarationRouter);
+app.use("/mode",modeRouter)
 
 const port = process.env.PORT || 8080;
 
