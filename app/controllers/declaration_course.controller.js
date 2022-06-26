@@ -15,23 +15,25 @@ const createDeclaration = async (req, res) => {
                     RIDER_ID,
                     PICK_UP_ID, AUTRE_PICKUP,
                     DESTINATION_ID, AUTRE_DESTINATION,
+                    ID_MODE,
                     TYPE_INCIDENT_ID, AUTRE_INCIDENT,
                     IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
                     COMMENTAIRE_COVOITURAGE,
                     ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, RAISON_ANNULATION, ANNULE_PAR,
-                    TIME_SPENT, KM_SPENT, MONTANT, NUMERO_COURSE, DATE_DEBUT_COURSE, LATITUDE, LONGITUDE
+                    TIME_SPENT, KM_SPENT, NUM_EMPLOYE, MONTANT, NUMERO_COURSE, DATE_DEBUT_COURSE, LATITUDE, LONGITUDE
           } = req.body;
 
           try {
 
                     if(CLIENT_ID == 'autre') {
-                              const { insertId: newClientId } = await query('INSERT INTO rider_kcb(NOM, AGENCE_ID, CORPORATE_ID, IS_ACTIF, IS_AUTRE) VALUES(?, ?, ?, ?, ?)', [
+                              const { insertId: newClientId } = await query('INSERT INTO rider_kcb(NOM, AGENCE_ID, CORPORATE_ID, IS_ACTIF, IS_AUTRE,NUM_EMPLOYE) VALUES(?, ?, ?, ?, ?,?)', [
                                         AUTRE_CLIENT,
                                         // AGENCE_ID,
                                         null,
                                         ID_CORPORATE,
                                         1,
-                                        1
+                                        1,
+                                        NUM_EMPLOYE
                               ])
                               CLIENT_ID = newClientId
                     }
@@ -70,8 +72,8 @@ const createDeclaration = async (req, res) => {
                     const { insertId } = await declaration_courseModel.create(
                               ID_CORPORATE, TYPE_DECLARATION_ID, NUMERO_COURSE, LATITUDE, LONGITUDE, iS_COVOITURAGE,
                               CLIENT_ID, RIDER_ID,
-                              PICK_UP_ID, DESTINATION_ID, TYPE_INCIDENT_ID, IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
-                              COMMENTAIRE_COVOITURAGE, ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, ANNULE_PAR, TIME_SPENT, KM_SPENT,
+                              PICK_UP_ID, DESTINATION_ID,ID_MODE, TYPE_INCIDENT_ID, IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
+                              COMMENTAIRE_COVOITURAGE, ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, ANNULE_PAR, TIME_SPENT, KM_SPENT,NUM_EMPLOYE,
                               MONTANT, DATE_DEBUT_COURSE, moment().format('YYYY/MM/DD HH:mm:ss'));
                     const chauffeurs = await query('SELECT TOKEN FROM driver_notification_tokens WHERE TOKEN IS NOT NULL')
                     const tokens = chauffeurs.map(chauff => chauff.TOKEN)
