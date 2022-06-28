@@ -31,7 +31,7 @@ const getDriver = async (TELEPHONE) => {
 const getHistory = async (chauffeurId, isAll = false, corporate,  month, year, q, limit = 0, offset = 10) => {
           try {
                     var binds = []
-                    var sqlQuery = `SELECT dc.*, co.DESCRIPTION CORPORATE_DESCRIPTION, tyi.DESCRIPTION INCIDENT_DESCRIPTION, ra.DESCRIPTION RAISON_ANNULATION, drk.NOM_CHAFFEUR, drk.PRENOM_CHAUFFEUR, pi.DESCRIPTION PICKUP, de.DESCRIPTION DESTINATION, rk.NOM  FROM declaration_course  dc     `
+                    var sqlQuery = `SELECT dc.*, co.DESCRIPTION CORPORATE_DESCRIPTION, tyi.DESCRIPTION INCIDENT_DESCRIPTION, ra.DESCRIPTION RAISON_ANNULATION, drk.NOM_CHAFFEUR, drk.PRENOM_CHAUFFEUR, pi.DESCRIPTION PICKUP, de.DESCRIPTION DESTINATION, rk.NOM  FROM declaration_course  dc`
                     sqlQuery += " LEFT JOIN corporate co ON co.ID_CORPORATE = dc.ID_CORPORATE "
                     sqlQuery += " LEFT JOIN pick_up pi ON pi.PICK_UP_ID = dc.PICK_UP_ID "
                     sqlQuery += " LEFT JOIN destination de ON de.DESTINATION_ID = dc.DESTINATION_ID "
