@@ -26,7 +26,7 @@ const createDeclaration = async (req, res) => {
           try {
 
                     if(CLIENT_ID == 'autre') {
-                              const { insertId: newClientId } = await query('INSERT INTO rider_kcb(NOM, AGENCE_ID, CORPORATE_ID, IS_ACTIF, IS_AUTRE,NUM_EMPLOYE) VALUES(?, ?, ?, ?, ?,?)', [
+                              const { insertId: newClientId } = await query('INSERT INTO rider_kcb(NOM, AGENCE_ID, CORPORATE_ID, IS_ACTIF, IS_AUTRE,TEL1) VALUES(?, ?, ?, ?, ?,?)', [
                                         AUTRE_CLIENT,
                                         // AGENCE_ID,
                                         null,
@@ -72,8 +72,8 @@ const createDeclaration = async (req, res) => {
                     const { insertId } = await declaration_courseModel.create(
                               ID_CORPORATE, TYPE_DECLARATION_ID, NUMERO_COURSE, LATITUDE, LONGITUDE, iS_COVOITURAGE,
                               CLIENT_ID, RIDER_ID,
-                              PICK_UP_ID, DESTINATION_ID,ID_MODE, TYPE_INCIDENT_ID, IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
-                              COMMENTAIRE_COVOITURAGE, ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, ANNULE_PAR, TIME_SPENT, KM_SPENT,NUM_EMPLOYE,
+                              PICK_UP_ID, DESTINATION_ID, ID_MODE, TYPE_INCIDENT_ID, IS_INCIDENT, COMMENTAIRES, NOMS_COVOITURAGES,
+                              COMMENTAIRE_COVOITURAGE, ID_RAISON_ANNULATION, DATE_DEMANDE_COURSE, DATE_ANNULATION_COURSE, ANNULE_PAR, TIME_SPENT, KM_SPENT,
                               MONTANT, DATE_DEBUT_COURSE, moment().format('YYYY/MM/DD HH:mm:ss'));
                     const chauffeurs = await query('SELECT TOKEN FROM driver_notification_tokens WHERE TOKEN IS NOT NULL')
                     const tokens = chauffeurs.map(chauff => chauff.TOKEN)
