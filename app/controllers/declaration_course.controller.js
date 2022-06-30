@@ -26,6 +26,14 @@ const createDeclaration = async (req, res) => {
           try {
 
                     if(CLIENT_ID == 'autre') {
+                              const existClient = (await query('SELECT * FROM rider_kcb WHERE CORPORATE_ID = ? AND TEL1 = ?', [ID_CORPORATE, NUM_EMPLOYE]))[0]
+                              if(existClient) {
+                                        return res.status(422).json({
+                                                  errors: {
+                                                            numero: "Le client existe déjà, veuillez le choisir dans la liste"
+                                                  }
+                                        })
+                              }
                               const { insertId: newClientId } = await query('INSERT INTO rider_kcb(NOM, AGENCE_ID, CORPORATE_ID, IS_ACTIF, IS_AUTRE,TEL1) VALUES(?, ?, ?, ?, ?,?)', [
                                         AUTRE_CLIENT,
                                         // AGENCE_ID,
